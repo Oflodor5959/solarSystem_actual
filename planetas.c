@@ -15,29 +15,96 @@ int contar_callback(void* data, int argc, char** argv, char** azColName) {
 
 void agregar_planeta(sqlite3* db) {
     Planeta p;
+    char input[64];
     printf("--- AGREGAR PLANETA ---\n");
-    printf("Nombre: "); scanf("%s", p.nombre);
-    printf("Radio (km): "); scanf("%f", &p.radio_km);
-    printf("Velocidad orbital (km/s): "); scanf("%f", &p.velocidad_orbital);
+
+    printf("Nombre (o SALIR para cancelar): ");
+    scanf("%s", input);
+    if (strcmp(input, "SALIR") == 0) {
+        printf("Operacion cancelada.\n");
+        return;
+    }
+    strcpy(p.nombre, input);
+
+    printf("Radio (km) (o SALIR para cancelar): ");
+    scanf("%s", input);
+    if (strcmp(input, "SALIR") == 0) {
+        printf("Operacion cancelada.\n");
+        return;
+    }
+    if (sscanf(input, "%f", &p.radio_km) != 1) {
+        printf("Entrada invalida. Operacion cancelada.\n");
+        return;
+    }
+    if (p.radio_km == -1) {
+        printf("Operacion cancelada.\n");
+        return;
+    }
+
+    printf("Velocidad orbital (km/s) (o SALIR para cancelar): ");
+    scanf("%s", input);
+    if (strcmp(input, "SALIR") == 0) {
+        printf("Operación cancelada.\n");
+        return;
+    }
+    if (sscanf(input, "%f", &p.velocidad_orbital) != 1) {
+        printf("Entrada invalida. Operacion cancelada.\n");
+        return;
+    }
+    if (p.velocidad_orbital == -1) {
+        printf("Operacion cancelada.\n");
+        return;
+    }
 
     do {
-        printf("Distancia al Sol (millones km, %.1f - %.1f): ", DISTANCIA_MIN, DISTANCIA_MAX);
-        scanf("%f", &p.distancia_sol);
+        printf("Distancia al Sol (millones km, %.1f - %.1f, o SALIR para cancelar): ", DISTANCIA_MIN, DISTANCIA_MAX);
+        scanf("%s", input);
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        if (sscanf(input, "%f", &p.distancia_sol) != 1) {
+            printf("Entrada invalida. Operacion cancelada.\n");
+            return;
+        }
+        if (p.distancia_sol == -1) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
         if (p.distancia_sol < DISTANCIA_MIN || p.distancia_sol > DISTANCIA_MAX)
             printf("Distancia fuera de rango.\n");
     } while (p.distancia_sol < DISTANCIA_MIN || p.distancia_sol > DISTANCIA_MAX);
 
     for (int i = 0; i < MAX_COLORES; i++) {
-        printf("Color #%d (ejemplo: RED, BLUE, GREEN, YELLOW, BLACK, WHITE): ", i+1);
-        scanf("%s", p.colores[i]);
+        printf("Color #%d (ejemplo: RED, BLUE, GREEN, YELLOW, BLACK, WHITE, o SALIR para cancelar): ", i+1);
+        scanf("%s", input);
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        strcpy(p.colores[i], input);
     }
 
     do {
-        printf("Numero de lunas (0-%d): ", MAX_LUNAS);
-        scanf("%d", &p.num_lunas);
+        printf("Numero de lunas (0-%d, o SALIR para cancelar): ", MAX_LUNAS);
+        scanf("%s", input);
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operación cancelada.\n");
+            return;
+        }
+        if (sscanf(input, "%d", &p.num_lunas) != 1) {
+            printf("Entrada inalida. Operacion cancelada.\n");
+            return;
+        }
+        if (p.num_lunas == -1) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
         if (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS)
             printf("Cantidad fuera de rango.\n");
     } while (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS);
+
+    // --- Aquí termina el bloque de entrada de datos ---
 
     // Validar órbita contra los planetas existentes
     sqlite3_stmt *stmt;
@@ -112,6 +179,7 @@ void editar_planeta(sqlite3* db) {
     }
 
     int opcion;
+    char input[64];
     do {
         printf("\n¿Que deseas editar?\n");
         printf("1. Radio (actual: %.1f km)\n", p.radio_km);
@@ -123,41 +191,69 @@ void editar_planeta(sqlite3* db) {
         printf("7. Numero de lunas (actual: %d)\n", p.num_lunas);
         printf("0. Guardar y salir\n");
         printf("Opcion: ");
-        scanf("%d", &opcion);
+        scanf("%s", input);
+        if (sscanf(input, "%d", &opcion) != 1) {
+            printf("Entrada invalida.\n");
+            continue;
+        }
 
         switch (opcion) {
             case 1:
-                printf("Nuevo radio (km): ");
-                scanf("%f", &p.radio_km);
+                printf("Nuevo radio (km, o SALIR para cancelar): ");
+                scanf("%s", input);
+                if (strcmp(input, "SALIR") == 0) break;
+                if (sscanf(input, "%f", &p.radio_km) != 1) {
+                    printf("Entrada invalida.\n");
+                }
                 break;
             case 2:
-                printf("Nueva velocidad orbital (km/s): ");
-                scanf("%f", &p.velocidad_orbital);
+                printf("Nueva velocidad orbital (km/s, o SALIR para cancelar): ");
+                scanf("%s", input);
+                if (strcmp(input, "SALIR") == 0) break;
+                if (sscanf(input, "%f", &p.velocidad_orbital) != 1) {
+                    printf("Entrada invalida.\n");
+                }
                 break;
             case 3:
                 do {
-                    printf("Nueva distancia al Sol (millones km, %.1f - %.1f): ", DISTANCIA_MIN, DISTANCIA_MAX);
-                    scanf("%f", &p.distancia_sol);
+                    printf("Nueva distancia al Sol (millones km, %.1f - %.1f, o SALIR para cancelar): ", DISTANCIA_MIN, DISTANCIA_MAX);
+                    scanf("%s", input);
+                    if (strcmp(input, "SALIR") == 0) break;
+                    if (sscanf(input, "%f", &p.distancia_sol) != 1) {
+                        printf("Entrada invalida.\n");
+                        continue;
+                    }
                     if (p.distancia_sol < DISTANCIA_MIN || p.distancia_sol > DISTANCIA_MAX)
                         printf("Distancia fuera de rango.\n");
                 } while (p.distancia_sol < DISTANCIA_MIN || p.distancia_sol > DISTANCIA_MAX);
                 break;
             case 4:
-                printf("Nuevo color principal: ");
-                scanf("%s", p.colores[0]);
+                printf("Nuevo color principal (o SALIR para cancelar): ");
+                scanf("%s", input);
+                if (strcmp(input, "SALIR") == 0) break;
+                strcpy(p.colores[0], input);
                 break;
             case 5:
-                printf("Nuevo color secundario: ");
-                scanf("%s", p.colores[1]);
+                printf("Nuevo color secundario (o SALIR para cancelar): ");
+                scanf("%s", input);
+                if (strcmp(input, "SALIR") == 0) break;
+                strcpy(p.colores[1], input);
                 break;
             case 6:
-                printf("Nuevo color terciario: ");
-                scanf("%s", p.colores[2]);
+                printf("Nuevo color terciario (o SALIR para cancelar): ");
+                scanf("%s", input);
+                if (strcmp(input, "SALIR") == 0) break;
+                strcpy(p.colores[2], input);
                 break;
             case 7:
                 do {
-                    printf("Nuevo numero de lunas (0-%d): ", MAX_LUNAS);
-                    scanf("%d", &p.num_lunas);
+                    printf("Nuevo numero de lunas (0-%d, o SALIR para cancelar): ", MAX_LUNAS);
+                    scanf("%s", input);
+                    if (strcmp(input, "SALIR") == 0) break;
+                    if (sscanf(input, "%d", &p.num_lunas) != 1) {
+                        printf("Entrada invalida.\n");
+                        continue;
+                    }
                     if (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS)
                         printf("Cantidad fuera de rango.\n");
                 } while (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS);
