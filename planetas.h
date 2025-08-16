@@ -1,3 +1,10 @@
+// Datos del archivo
+// Autor: [Rodolfo Beltre]
+// Matricula: [2025-0444]
+// Fecha: [16/8/2025]
+// Descripción: [CRUD simulador de sistemas solares]
+// planetas.h
+
 #ifndef PLANETAS_H
 #define PLANETAS_H
 
@@ -5,9 +12,6 @@
 
 #define MAX_COLORES 3
 #define MAX_LUNAS 8
-
-#define MAX_COLORES 3
-
 typedef struct {
     char nombre[32];
     float radio_km;

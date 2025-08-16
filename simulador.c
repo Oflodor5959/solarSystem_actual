@@ -1,3 +1,10 @@
+// Datos del archivo
+// Autor: [Rodolfo Beltre]
+// Matricula: [2025-0444]
+// Fecha: [16/8/2025]
+// Descripción: [CRUD simulador de sistemas solares]
+// simulador.c
+
 #include "simulador.h"
 #include <raylib.h>
 #include <sqlite3.h>
@@ -10,14 +17,21 @@
 
 #define MAX_PLANETAS 16
 #define NUM_ESTRELLAS 750
-#define MAX_LUNAS 8  // Asumiendo que esto está definido en planetas.h
+#define MAX_LUNAS 8
 
 bool pausado = false;
 bool mostrar_orbitas = true;
 
 // --------------------------
-// Funciones de utilidad
+// UTILITY FUNCTIONS
 // --------------------------
+
+int solo_letras(const char* s) {
+    for (int i = 0; s[i]; i++) {
+        if (s[i] < 'A' || s[i] > 'Z') return 0;
+    }
+    return 1;
+}
 
 Color nombre_a_color(const char *nombre) {
     if (strcmp(nombre, "RED") == 0) return RED;
@@ -30,7 +44,38 @@ Color nombre_a_color(const char *nombre) {
     if (strcmp(nombre, "GRAY") == 0) return GRAY;
     if (strcmp(nombre, "WHITE") == 0) return WHITE;
     if (strcmp(nombre, "BLACK") == 0) return BLACK;
-    return RAYWHITE; // Color por defecto
+    return RAYWHITE;
+}
+
+void pedir_color(char* color) {
+    char input[32];
+    const char* colores[] = {"RED", "BLUE", "GREEN", "YELLOW", "ORANGE", 
+                            "PURPLE", "BROWN", "GRAY", "WHITE", "BLACK"};
+    int n = 10;
+    int valido;
+    do {
+        printf("Color (RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE, BROWN, GRAY, WHITE, BLACK): ");
+        scanf("%s", input);
+        valido = 0;
+        for (int i = 0; i < n; i++) {
+            if (strcmp(input, colores[i]) == 0) {
+                valido = 1;
+                break;
+            }
+        }
+        if (!valido) printf("Color invalido. Intenta de nuevo.\n");
+    } while (!valido);
+    strcpy(color, input);
+}
+
+int es_color_valido(const char* color) {
+    const char* colores[] = {"RED", "BLUE", "GREEN", "YELLOW", "ORANGE", 
+                            "PURPLE", "BROWN", "GRAY", "WHITE", "BLACK"};
+    int n = 10;
+    for (int i = 0; i < n; i++) {
+        if (strcmp(color, colores[i]) == 0) return 1;
+    }
+    return 0;
 }
 
 static inline Vector3 Vector3Subtract(Vector3 v1, Vector3 v2) {
@@ -46,14 +91,13 @@ static inline Vector3 Vector3Add(Vector3 v1, Vector3 v2) {
 }
 
 Vector3 rotar_horizontal(Vector3 pos, float ang) {
-    // Rota el vector alrededor del eje Y (horizontal)
     float x = pos.x * cosf(ang) - pos.z * sinf(ang);
     float z = pos.x * sinf(ang) + pos.z * cosf(ang);
     return (Vector3){x, pos.y, z};
 }
 
 // --------------------------
-// Estructuras de datos
+// DATA STRUCTURES
 // --------------------------
 
 typedef struct {
@@ -62,7 +106,7 @@ typedef struct {
 } ManchasPlaneta;
 
 // --------------------------
-// Funciones de dibujo
+// DRAWING FUNCTIONS
 // --------------------------
 
 void dibujar_orbita(Vector3 centro, float radio, Color color) {
@@ -85,7 +129,7 @@ void dibujar_orbita(Vector3 centro, float radio, Color color) {
 }
 
 // --------------------------
-// Funciones de inicialización
+// INITIALIZATION FUNCTIONS
 // --------------------------
 
 void cargar_planetas(sqlite3* db, Planeta planetas[], int *n) {
@@ -112,12 +156,11 @@ void cargar_planetas(sqlite3* db, Planeta planetas[], int *n) {
 }
 
 void generar_manchas(ManchasPlaneta manchas[], Planeta planetas[], int n) {
-    srand((unsigned int)time(NULL)); // Inicializa la semilla aleatoria
+    srand((unsigned int)time(NULL));
     
     for (int i = 0; i < n; i++) {
         float radio = 2.0f + planetas[i].radio_km * 0.001f;
         
-        // Secundarias (más cantidad, más pegadas)
         for (int m = 0; m < 124; m++) {
             float theta = ((float)rand() / RAND_MAX) * 2 * PI;
             float phi = ((float)rand() / RAND_MAX) * PI;
@@ -128,7 +171,6 @@ void generar_manchas(ManchasPlaneta manchas[], Planeta planetas[], int n) {
             manchas[i].secundarias[m].z = cosf(phi) * radio * factor;
         }
         
-        // Terciarias (menos cantidad, también más pegadas)
         for (int m = 0; m < 32; m++) {
             float theta = ((float)rand() / RAND_MAX) * 2 * PI;
             float phi = ((float)rand() / RAND_MAX) * PI;
@@ -142,7 +184,7 @@ void generar_manchas(ManchasPlaneta manchas[], Planeta planetas[], int n) {
 }
 
 void inicializar_estrellas(float estrellas_x[], int estrellas_y[], int ancho, int alto) {
-    srand(42); // Semilla fija para reproducibilidad
+    srand(42);
     for (int s = 0; s < NUM_ESTRELLAS; s++) {
         estrellas_x[s] = rand() % ancho;
         estrellas_y[s] = rand() % alto;
@@ -150,15 +192,19 @@ void inicializar_estrellas(float estrellas_x[], int estrellas_y[], int ancho, in
 }
 
 // --------------------------
-// Función principal
+// MAIN SIMULATION FUNCTION
 // --------------------------
+
+float calcular_distancia_luna(float radio, int l, int num_lunas) {
+    float divisor = (num_lunas > 1) ? (float)(num_lunas - 1) : 1.0f;
+    return radio * (2.5f + l * (1.5f / divisor));
+}
 
 void iniciar_simulacion(sqlite3* db) {
     Planeta planetas[MAX_PLANETAS];
     ManchasPlaneta manchas[MAX_PLANETAS];
     int n = 0;
     
-    // Inicializar audio
     InitAudioDevice();
     Music musica = LoadMusicStream("soundspace.wav");
     if (musica.ctxData == NULL) {
@@ -167,16 +213,13 @@ void iniciar_simulacion(sqlite3* db) {
     PlayMusicStream(musica);
     SetMusicVolume(musica, 0.5f);
     
-    // Cargar datos de planetas
     cargar_planetas(db, planetas, &n);
     generar_manchas(manchas, planetas, n);
     
-    // Inicializar ventana
-    InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Sistema Solar 3D");
+    InitWindow(GetMonitorWidth(0), GetMonitorHeight(0), "Sistema Solar");
     ToggleFullscreen();
-    SetExitKey(0); // Desactiva el cierre automático con ESC
+    SetExitKey(0);
     
-    // Configuración de cámara
     Camera camera = { 0 };
     camera.position = (Vector3){ 0.0f, 50.0f, 120.0f };
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
@@ -184,7 +227,6 @@ void iniciar_simulacion(sqlite3* db) {
     camera.fovy = 45.0f;
     camera.projection = CAMERA_PERSPECTIVE;
     
-    // Variables de estado
     float tiempo = 0.0f;
     float cam_angle_x = 0.0f;
     float cam_angle_y = 10.0f * PI / 180.0f;
@@ -193,14 +235,12 @@ void iniciar_simulacion(sqlite3* db) {
     int last_mouse_x = 0, last_mouse_y = 0;
     int planeta_seleccionado = -1;
     
-    // Inicializar estrellas de fondo
     int ancho = GetScreenWidth();
     int alto = GetScreenHeight();
     float estrellas_x[NUM_ESTRELLAS];
     int estrellas_y[NUM_ESTRELLAS];
     inicializar_estrellas(estrellas_x, estrellas_y, ancho, alto);
     
-    // Inicializar lunas
     float lunas_phi[MAX_PLANETAS][MAX_LUNAS];
     float lunas_velocidad[MAX_PLANETAS][MAX_LUNAS];
     for (int i = 0; i < n; i++) {
@@ -212,27 +252,20 @@ void iniciar_simulacion(sqlite3* db) {
     
     SetTargetFPS(60);
     
-    // --------------------------
-    // Bucle principal
-    // --------------------------
     while (!WindowShouldClose()) {
-        
         if (IsKeyPressed(KEY_O)) {
             mostrar_orbitas = !mostrar_orbitas;
         }
 
-        // Manejo de entrada
         if (IsKeyPressed(KEY_Q)) break;
         if (IsKeyPressed(KEY_SPACE)) pausado = !pausado;
         
-        // Actualización de estado
         UpdateMusicStream(musica);
         
         if (!pausado) {
             tiempo += GetFrameTime();
         }
         
-        // Control de cámara
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             dragging = true;
             last_mouse_x = GetMouseX();
@@ -251,16 +284,13 @@ void iniciar_simulacion(sqlite3* db) {
             last_mouse_y = GetMouseY();
         }
         
-        // Zoom con rueda del mouse
         float wheel = GetMouseWheelMove();
         if (wheel != 0) {
             cam_distance -= wheel * 5.0f;
-            // Limitar distancia sin usar Clamp()
             if (cam_distance < 50.0f) cam_distance = 50.0f;
             if (cam_distance > 6000.0f) cam_distance = 6000.0f;
         }
         
-        // Calcular posiciones de planetas
         Vector3 posiciones[MAX_PLANETAS];
         float radios[MAX_PLANETAS];
         
@@ -274,7 +304,6 @@ void iniciar_simulacion(sqlite3* db) {
             radios[i] = 2.0f + planetas[i].radio_km * 0.001f;
         }
         
-        // Selección de planeta
         if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             Vector2 mouse = GetMousePosition();
             for (int i = 0; i < n; i++) {
@@ -288,7 +317,6 @@ void iniciar_simulacion(sqlite3* db) {
             }
         }
         
-        // Volver a vista del Sol con ESC
         if (IsKeyPressed(KEY_ESCAPE)) {
             planeta_seleccionado = -1;
             cam_angle_x = 0.0f;
@@ -297,20 +325,15 @@ void iniciar_simulacion(sqlite3* db) {
             camera.target = (Vector3){0, 0, 0};
         }
         
-        // Determinar centro de rotación
         Vector3 centro = (planeta_seleccionado >= 0) ? 
                          posiciones[planeta_seleccionado] : 
                          (Vector3){0, 0, 0};
         camera.target = centro;
         
-        // Calcular posición de la cámara
         camera.position.x = centro.x + sinf(cam_angle_x) * cosf(cam_angle_y) * cam_distance;
         camera.position.y = centro.y + sinf(cam_angle_y) * cam_distance;
         camera.position.z = centro.z + cosf(cam_angle_x) * cosf(cam_angle_y) * cam_distance;
         
-        // --------------------------
-        // Dibujo
-        // --------------------------
         BeginDrawing();
         ClearBackground((Color){10, 10, 30, 255});
         
@@ -318,7 +341,6 @@ void iniciar_simulacion(sqlite3* db) {
             DrawText("Simulacion pausada (SPACE para continuar)", 10, 90, 20, RED);
         }
         
-        // Dibujar estrellas de fondo
         for (int s = 0; s < NUM_ESTRELLAS; s++) {
             estrellas_x[s] += 0.05f;
             if (estrellas_x[s] > ancho) {
@@ -328,15 +350,12 @@ void iniciar_simulacion(sqlite3* db) {
             DrawPixel((int)estrellas_x[s], estrellas_y[s], RAYWHITE);
         }
         
-        // Dibujo 3D
         BeginMode3D(camera);
         
-        // Dibujar Sol
         DrawSphere((Vector3){0, 0, 0}, 16.0f, YELLOW);
         Color brillo = (Color){255, 255, 100, 65};
         DrawSphereEx((Vector3){0, 0, 0}, 19.0f, 32, 32, brillo);
         
-        // Dibujar planetas
         for (int i = 0; i < n; i++) {
             float ang = tiempo * planetas[i].velocidad_orbital * 0.01f;
             float x = cosf(ang) * planetas[i].distancia_sol * 0.1f;
@@ -344,16 +363,13 @@ void iniciar_simulacion(sqlite3* db) {
             float radio = 2.0f + planetas[i].radio_km * 0.001f;
             float rotacion_eje = tiempo * planetas[i].velocidad_orbital * 0.05f;
             
-            // Dibujar órbita
             if (mostrar_orbitas && planetas[i].distancia_sol > 0.0f) {
             dibujar_orbita((Vector3){0, 0, 0}, planetas[i].distancia_sol * 0.1f, GRAY);
             }
             
-            // Dibujar planeta
             Color color_principal = nombre_a_color(planetas[i].colores[0]);
             DrawSphereEx((Vector3){x, 0, z}, radio, 16, 16, color_principal);
             
-            // Dibujar manchas secundarias
             Color color_secundario = nombre_a_color(planetas[i].colores[1]);
             for (int m = 0; m < 124; m++) {
                 Vector3 rel = rotar_horizontal(manchas[i].secundarias[m], rotacion_eje);
@@ -361,7 +377,6 @@ void iniciar_simulacion(sqlite3* db) {
                 DrawSphere(pos, radio * 0.08f, color_secundario);
             }
             
-            // Dibujar manchas terciarias
             Color color_terciario = nombre_a_color(planetas[i].colores[2]);
             for (int m = 0; m < 32; m++) {
                 Vector3 rel = rotar_horizontal(manchas[i].terciarias[m], rotacion_eje);
@@ -369,12 +384,11 @@ void iniciar_simulacion(sqlite3* db) {
                 DrawSphere(pos, radio * 0.06f, color_terciario);
             }
             
-            // Dibujar lunas
             for (int l = 0; l < planetas[i].num_lunas; l++) {
                 float velocidad_luna = lunas_velocidad[i][l];
                 float theta = tiempo * velocidad_luna + l * (2 * PI / planetas[i].num_lunas);
                 float phi = lunas_phi[i][l];
-                float distancia_luna = radio * 2.0f + l * 1.0f;
+                float distancia_luna = calcular_distancia_luna(radio, l, planetas[i].num_lunas);
                 
                 Vector3 luna_pos = {
                     x + cosf(theta) * distancia_luna,
@@ -387,7 +401,6 @@ void iniciar_simulacion(sqlite3* db) {
         
         EndMode3D();
         
-        // Panel de información del planeta seleccionado
         if (planeta_seleccionado >= 0) {
             int panel_ancho = 300;
             int panel_alto = 150;
@@ -413,7 +426,6 @@ void iniciar_simulacion(sqlite3* db) {
                    panel_x + 10, panel_y + 90, 18, RAYWHITE);
         }
         
-        // Texto de controles
         DrawText("Controles: Space-bar para pausar, Mouse para rotar, rueda para zoom", 10, 10, 20, RAYWHITE);
         DrawText("Presione O para mostrar/ocultar orbitas", 10, 30, 20, RAYWHITE);
         DrawText("Presione Q para salir de la simulacion", 10, 50, 20, RAYWHITE);
@@ -421,10 +433,12 @@ void iniciar_simulacion(sqlite3* db) {
         EndDrawing();
     }
     
-    // Limpieza
     UnloadMusicStream(musica);
     CloseAudioDevice();
     CloseWindow();
 }
-//gcc main.c dashboard.c planetas.c simulador.c -o solar.exe -lsqlite3 -lraylib -lopengl32 -lgdi32 -lwinmm
 
+// Compile with:
+// gcc main.c dashboard.c planetas.c simulador.c -o solar.exe -lsqlite3 -lraylib -lopengl32 -lgdi32 -lwinmm
+// Run with:
+// solar.exe
