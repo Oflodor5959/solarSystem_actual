@@ -10,22 +10,6 @@
 #include <stdio.h>
 #include "planetas.h"
 
-//void mostrar_tabla_planetas(Planeta planetas[], int n) {
-//    printf(" _______________________________________________________________________________________\n");
-//    printf("| %-15s | %-10s | %-15s | %-10s | %-10s |\n", "Nombre", "Radio (km)", "Distancia (M km)", "Lunas", "Color");
-//    printf("|-----------------|------------|-----------------|------------|------------|\n");
-//    for (int i = 0; i < n; i++) {
-//        printf("| %-15s | %-10.0f | %-15.0f | %-10d | %-10s |\n",
-//            planetas[i].nombre,
-//            planetas[i].radio_km,
-//            planetas[i].distancia_sol,
-//            planetas[i].num_lunas,
-//            planetas[i].colores[0]
-//        );
-//    }
-//    printf("|_______________________________________________________________________________________|\n");
-//}
-
 int main() {
     sqlite3 *db;
     if (sqlite3_open("planetas.db", &db) != SQLITE_OK) {

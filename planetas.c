@@ -5,7 +5,7 @@
 // Descripción: [CRUD simulador de sistemas solares]
 // planetas.c
 
-
+#include <windows.h>
 #include "planetas.h"
 #include <stdio.h>
 #include <string.h>
@@ -124,7 +124,19 @@ static int procesar_input_int(const char* input, int* valor) {
 // --------------------------
 
 static void mostrar_menu_edicion(const Planeta* p) {
-    printf("\n Que deseas editar?\n");
+
+    system("cls"); system("clear"); 
+    printf("Cargando menu de edicion...");
+#ifdef _WIN32
+    Sleep(600);
+#else
+    usleep(600000);
+#endif
+    system("cls"); system("clear");
+    printf("\r");
+    printf("\n====================================\n");
+    printf("   MENU EDICION DE PLANETA\n");
+    printf("====================================\n");
     printf("1. Radio (actual: %.1f km)\n", p->radio_km);
     printf("2. Velocidad orbital (actual: %.2f km/s)\n", p->velocidad_orbital);
     printf("3. Distancia al Sol (actual: %.1f millones km)\n", p->distancia_sol);
@@ -133,6 +145,7 @@ static void mostrar_menu_edicion(const Planeta* p) {
     printf("6. Color terciario (actual: %s)\n", p->colores[2]);
     printf("7. Numero de lunas (actual: %d)\n", p->num_lunas);
     printf("0. Guardar y salir\n");
+    printf("====================================\n");
     printf("Opcion: ");
 }
 
@@ -204,6 +217,42 @@ case 6:
         break;
     }
     strcpy(p->colores[2], input);
+case 7:
+         do {
+            obtener_input("Nuevo numero de lunas (0-8, o [SALIR] para cancelar): ", input, sizeof(input));
+                if (strcmp(input, "SALIR") == 0) {
+                printf("Operacion cancelada.\n");
+                break;
+            }
+            if (strlen(input) == 0) {
+                printf("El campo no puede estar vacio. Intente nuevamente.\n");
+                continue;
+            }
+            int es_numero = 1;
+               for (int i = 0; input[i] != '\0'; i++) {
+                if (input[i] < '0' || input[i] > '9') {
+                    es_numero = 0;
+                    break;
+                   }
+            }
+            if (!es_numero) {
+                printf("Solo se permiten numeros enteros. Intente nuevamente.\n");
+                continue;
+            }
+            int resultado = procesar_input_int(input, &p->num_lunas);
+            if (resultado <= 0) {
+                printf("Operacion cancelada.\n");
+                break;
+            }
+            if (p->num_lunas < 0 || p->num_lunas > MAX_LUNAS) {
+                printf("Numero fuera de rango. Intente nuevamente.\n");
+                continue;
+            }
+            break;
+        } while (1);
+        break;
+
+case 0:
     break;
     }
 }
@@ -216,12 +265,21 @@ void agregar_planeta(sqlite3* db) {
     Planeta p;
     char input[INPUT_BUFFER_SIZE];
     
-    printf("\n--- AGREGAR PLANETA ---\n");
+    system("cls"); system("clear");
+    printf("Cargando formulario de nuevo planeta...");
+    #ifdef _WIN32
+        Sleep(400);
+    #else
+        usleep(400000);
+    #endif
+    system("cls"); system("clear");
+    printf("\r");
+    printf("\n====================================\n");
+    printf("   AGREGAR NUEVO PLANETA\n");
+    printf("====================================\n");
 
     do {
-        printf("Nombre (o SALIR para cancelar): ");
-        int c;
-        while ((c = getchar()) != '\n' && c != EOF);
+        printf("Nombre (o [SALIR] para cancelar): ");
         if (fgets(input, sizeof(input), stdin) == NULL) {
             printf("Error de entrada.\n");
             return;
@@ -231,36 +289,123 @@ void agregar_planeta(sqlite3* db) {
             printf("Operacion cancelada.\n");
             return;
         }
-    } while (strlen(input) == 0);
+        if (strlen(input) == 0) {
+            printf("El nombre no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        // Validar que el nombre no exista ya en la base de datos
+        char sql_check[SQL_BUFFER_SIZE];
+        snprintf(sql_check, sizeof(sql_check), "SELECT 1 FROM planetas WHERE nombre='%s';", input);
+        sqlite3_stmt *stmt;
+        int existe = 0;
+        if (sqlite3_prepare_v2(db, sql_check, -1, &stmt, NULL) == SQLITE_OK) {
+            if (sqlite3_step(stmt) == SQLITE_ROW) {
+                existe = 1;
+            }
+            sqlite3_finalize(stmt);
+        }
+        if (existe) {
+            printf("Ya existe un planeta con ese nombre. Intente otro nombre.\n");
+            continue;
+        }
+        break;
+    } while (1);
     strcpy(p.nombre, input);
 
     do {
-    obtener_input("Radio (km) (2000 - 150000, o SALIR para cancelar): ", input, sizeof(input));
-    if (procesar_input_float(input, &p.radio_km) <= 0) {
-        printf("Operacion cancelada.\n");
-        return;
-    }
-    if (p.radio_km < 2000.0f || p.radio_km > 150000.0f) {
-        printf("Radio fuera de rango realista. Intente nuevamente.\n");
-    }
-} while (p.radio_km < 2000.0f || p.radio_km > 150000.0f);
+        obtener_input("Radio (km) (2000 - 150000, o [SALIR] para cancelar): ", input, sizeof(input));
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            Sleep(800);
+            return;
+        }
+        if (strlen(input) == 0) {
+            printf("El campo no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        int es_numero = 1;
+        for (int i = 0; input[i] != '\0'; i++) {
+            if ((input[i] < '0' || input[i] > '9') && input[i] != '.') {
+                es_numero = 0;
+                break;
+            }
+        }
+        if (!es_numero) {
+            printf("Solo se permiten numeros. Intente nuevamente.\n");
+            continue;
+        }
+        if (procesar_input_float(input, &p.radio_km) <= 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        if (p.radio_km < 2000.0f || p.radio_km > 150000.0f) {
+            printf("Radio fuera de rango realista. Intente nuevamente.\n");
+        }
+    } while (p.radio_km < 2000.0f || p.radio_km > 150000.0f);
 
-    obtener_input("Velocidad orbital (km/s) (o SALIR para cancelar): ", input, sizeof(input));
-    if (procesar_input_float(input, &p.velocidad_orbital) <= 0) {
-        printf("Operacion cancelada.\n");
-        return;
-    }
+    do {    //velocidad orbital
+        obtener_input("Velocidad orbital (km/s) (o [SALIR] para cancelar): ", input, sizeof(input));
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            Sleep(800);
+            return;
+        }
+        if (strlen(input) == 0) {
+            printf("El campo no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        int es_numero = 1;
+        for (int i = 0; input[i] != '\0'; i++) {
+            if ((input[i] < '0' || input[i] > '9') && input[i] != '.') {
+                es_numero = 0;
+                break;
+            }
+        }
+        if (!es_numero) {
+            printf("Solo se permiten numeros. Intente nuevamente.\n");
+            continue;
+        }
+        if (procesar_input_float(input, &p.velocidad_orbital) <= 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        break;
+    } while (1);
 
     float distancia_minima = DISTANCIA_MIN + (p.radio_km * 0.007f / 0.1f);
-    do {
-        printf("Distancia al Sol (millones km, %.1f - %.1f, o SALIR para cancelar): ", 
-              distancia_minima, DISTANCIA_MAX);
+
+    do {    //  distancia al Sol
+        printf("Distancia al Sol (millones km, %.1f - %.1f, o [SALIR] para cancelar): ", distancia_minima, DISTANCIA_MAX);      
         obtener_input("", input, sizeof(input));
         
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            Sleep(800);
+            return;
+        }
+
+        if (strlen(input) == 0) {
+            printf("El campo no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        int es_numero = 1;
+        for (int i = 0; input[i] != '\0'; i++) {
+            if ((input[i] < '0' || input[i] > '9') && input[i] != '.') {
+                es_numero = 0;
+                break;
+            }
+        }
+        if (!es_numero) {
+            printf("Solo se permiten numeros. Intente nuevamente.\n");
+            continue;
+        }
         int resultado = procesar_input_float(input, &p.distancia_sol);
         if (resultado <= 0) {
             printf("Operacion cancelada.\n");
             return;
+        }
+        if (p.distancia_sol < distancia_minima || p.distancia_sol > DISTANCIA_MAX) {
+            printf("Distancia fuera de rango. Intente nuevamente.\n");
         }
     } while (p.distancia_sol < distancia_minima || p.distancia_sol > DISTANCIA_MAX);
     
@@ -268,7 +413,7 @@ void agregar_planeta(sqlite3* db) {
         printf("Colores validos: RED, GREEN, BLUE, YELLOW, WHITE, BLACK, GRAY, BROWN, ORANGE, PURPLE\n");
     for (int i = 0; i < MAX_COLORES; i++) {
     do {
-        printf("Ingrese el color %s (o SALIR para cancelar): ", nombres_colores[i]);
+        printf("Ingrese el color %s (o [SALIR] para cancelar): ", nombres_colores[i]);
         obtener_input("", input, sizeof(input));
         if (strcmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
@@ -281,16 +426,38 @@ void agregar_planeta(sqlite3* db) {
             break;
         }
     } while (1);
-}
+    }
 
     do {
-        printf("Numero de lunas (0-%d, o SALIR para cancelar): ", MAX_LUNAS);
+        printf("Numero de lunas (0-%d, o [SALIR] para cancelar): ", MAX_LUNAS);
         obtener_input("", input, sizeof(input));
-        
+        if (strcmp(input, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        if (strlen(input) == 0) {
+            printf("El campo no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        int es_numero = 1;
+        for (int i = 0; input[i] != '\0'; i++) {
+            if (input[i] < '0' || input[i] > '9') {
+                es_numero = 0;
+                break;
+            }
+        }
+        if (!es_numero) {
+            printf("Solo se permiten numeros enteros. Intente nuevamente.\n");
+            continue;
+        }
         int resultado = procesar_input_int(input, &p.num_lunas);
         if (resultado <= 0) {
             printf("Operacion cancelada.\n");
             return;
+        }
+        if (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS) {
+            printf("Numero fuera de rango. Intente nuevamente.\n");
+            continue;
         }
     } while (p.num_lunas < 0 || p.num_lunas > MAX_LUNAS);
 
@@ -306,25 +473,84 @@ void agregar_planeta(sqlite3* db) {
         p.colores[0], p.colores[1], p.colores[2], p.num_lunas);
 
     if (sqlite3_exec(db, sql_insert, 0, 0, 0) == SQLITE_OK) {
-        printf("Planeta agregado exitosamente.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(800);
+        #else
+            usleep(800000);
+        #endif
+        system("cls");
+        printf("Planeta '%s' agregado con exito.\n", p.nombre);
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(1000000);
+        #endif    
     } else {
-        printf("Error al agregar planeta.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(600);
+        #else
+            usleep(600000);
+        #endif
+        printf("\rError al agregar planeta.\n");
+        #ifdef _WIN32
+            Sleep(600);
+        #else
+            usleep(600000);
+        #endif
     }
 }
 
 void editar_planeta(sqlite3* db) {
     char nombre[32];
     char input[INPUT_BUFFER_SIZE];
-    
-    printf("\n--- EDITAR PLANETA ---\n");
+
+    system("clear"); system("cls");
+    printf("Cargando formulario de edicion...");
+    #ifdef _WIN32
+        Sleep(600);
+    #else
+        usleep(600000);
+    #endif
+    system("clear"); system("cls");
+    printf("\r");
+    printf("\n====================================\n");
+    printf("   EDITAR PLANETA\n");
+    printf("====================================\n");
+    printf("Presione 'Enter' para continuar...");
     int c;
     while ((c = getchar()) != '\n' && c != EOF); // Limpia el buffer de entrada
+        // Borra la línea del mensaje en la terminal
+        printf("\033[F");
+        printf("\r%*s\r", 40, "");
     do {
-        obtener_input("Nombre del planeta a editar: ", nombre, sizeof(nombre));
+        obtener_input("Nombre del planeta a editar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));
+        if (strcmp(nombre, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
         if (strlen(nombre) == 0) {
             printf("El nombre no puede estar vacio. Intente nuevamente.\n");
+            continue;
         }
-    } while (strlen(nombre) == 0);
+        // Validar que el planeta exista en la base de datos
+        char sql_check[SQL_BUFFER_SIZE];
+        snprintf(sql_check, sizeof(sql_check), "SELECT 1 FROM planetas WHERE nombre='%s';", nombre);
+        sqlite3_stmt *stmt;
+        int existe = 0;
+        if (sqlite3_prepare_v2(db, sql_check, -1, &stmt, NULL) == SQLITE_OK) {
+            if (sqlite3_step(stmt) == SQLITE_ROW) {
+                existe = 1;
+            }
+            sqlite3_finalize(stmt);
+        }
+        if (!existe) {
+            printf("No existe un planeta con ese nombre. Intente nuevamente.\n");
+            continue;
+        }
+        break;
+    } while (1);
 
     char sql_check[SQL_BUFFER_SIZE];
     snprintf(sql_check, sizeof(sql_check), 
@@ -341,18 +567,41 @@ void editar_planeta(sqlite3* db) {
     strcpy(p.nombre, nombre);
     obtener_datos_planeta(db, nombre, &p);
 
-    int opcion;
+    int opcion = -1;
     do {
         mostrar_menu_edicion(&p);
         obtener_input("", input, sizeof(input));
-        
-        if (procesar_input_int(input, &opcion) <= 0) {
+        if (strlen(input) == 0) {
+            printf("La entrada no puede estar vacia. Intente nuevamente.\n");
+            #ifdef _WIN32
+            Sleep(1500);
+            #else
+            usleep(1500000);
+            #endif
             continue;
         }
-        
-        if (opcion == 0) break;
+        int resultado = procesar_input_int(input, &opcion);
+        if (resultado == -1) {
+            printf("Solo se permiten numeros enteros del 0 al 7. Intente nuevamente.\n");
+            #ifdef _WIN32
+            Sleep(1500);
+            #else
+            usleep(1500000);
+            #endif
+            continue;
+        }
+        if (opcion < 0 || opcion > 7) {
+            printf("Solo se permiten opciones del 0 al 7. Intente nuevamente.\n");
+            #ifdef _WIN32
+            Sleep(1500);
+            #else
+            usleep(1500000);
+            #endif
+            continue;
+        }
+        if (opcion == 0 && resultado == 1) break;
         editar_campo(&p, opcion);
-    } while (opcion != 0);
+    } while (1);
 
     if (validar_orbita(db, &p, p.nombre)) {
         return;
@@ -366,14 +615,50 @@ void editar_planeta(sqlite3* db) {
         p.colores[0], p.colores[1], p.colores[2], p.num_lunas, p.nombre);
 
     if (sqlite3_exec(db, sql_update, 0, 0, 0) == SQLITE_OK) {
-        printf("Planeta actualizado exitosamente.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(500);
+        #else
+            usleep(500000);
+        #endif
+        system("clear"); system("cls");
+        printf("\rPlaneta actualizado exitosamente.\n");
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(1000000);
+        #endif
     } else {
-        printf("Error al actualizar planeta.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(5000);
+        #else
+            usleep(5000000);
+        #endif
+        printf("\rError al actualizar planeta.\n");
+        
     }
 }
 
 void eliminar_planeta(sqlite3* db) {
-    printf("\n--- ELIMINAR PLANETA ---\n");
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+    printf("Cargando formulario de eliminacion...");
+    #ifdef _WIN32
+        Sleep(600);
+    #else
+        usleep(600000);
+    #endif
+    system("cls"); system("clear");
+    printf("\r");
+    printf("\n====================================\n");
+    printf("   ELIMINAR PLANETA\n");
+    printf("====================================\n");
+    
+    
 
     sqlite3_stmt *stmt;
     const char *sql = "SELECT nombre FROM planetas;";
@@ -381,31 +666,76 @@ void eliminar_planeta(sqlite3* db) {
                         
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
         printf("Planetas disponibles:\n");
+        
         while (sqlite3_step(stmt) == SQLITE_ROW) {
             printf(" - %s\n", sqlite3_column_text(stmt, 0));
         }
-        sqlite3_finalize(stmt);
-    }
+        sqlite3_finalize(stmt); 
+    }  printf("presione ENTER para seleccionar un planeta");
 
     char nombre[32];
     int c;
-                        
-    while ((c = getchar()) != '\n' && c != EOF); // Limpia el buffer de entrada
-    obtener_input("Nombre del planeta a eliminar (o SALIR para cancelar): ", nombre, sizeof(nombre));
-
-    if (strcmp(nombre, "SALIR") == 0) {
-        printf("Operacion cancelada.\n");
-        return;
-    }
+    while ((c = getchar()) != '\n' && c != EOF); 
+    printf("\033[F");
+    printf("\r%*s\r", 44, "");
+    int existe = 0;
+    do {
+        obtener_input("Nombre del planeta a eliminar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));
+        if (strcmp(nombre, "SALIR") == 0) {
+            printf("Operacion cancelada.\n");
+            return;
+        }
+        if (strlen(nombre) == 0) {
+            printf("El nombre no puede estar vacio. Intente nuevamente.\n");
+            continue;
+        }
+        
+        char sql_check[SQL_BUFFER_SIZE];
+        snprintf(sql_check, sizeof(sql_check), "SELECT 1 FROM planetas WHERE nombre='%s';", nombre);
+        sqlite3_stmt *stmt_check;
+        existe = 0;
+        if (sqlite3_prepare_v2(db, sql_check, -1, &stmt_check, NULL) == SQLITE_OK) {
+            if (sqlite3_step(stmt_check) == SQLITE_ROW) {
+                existe = 1;
+            }
+            sqlite3_finalize(stmt_check);
+        }
+        if (!existe) {
+            printf("No existe un planeta con ese nombre. Intente nuevamente.\n");
+            continue;
+        }
+        break;
+    } while (1);
 
     char sql_del[SQL_BUFFER_SIZE];
     snprintf(sql_del, sizeof(sql_del), "DELETE FROM planetas WHERE nombre='%s';", nombre);
-                        
 
     if (sqlite3_exec(db, sql_del, 0, 0, 0) == SQLITE_OK) {
-        printf("Planeta eliminado exitosamente.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(600);
+        #else
+            usleep(600000);
+        #endif
+        printf("\rPlaneta eliminado exitosamente.\n");
+        #ifdef _WIN32
+            Sleep(1000);
+        #else
+            usleep(1000000);
+        #endif
     } else {
-        printf("Error al eliminar planeta.\n");
+        printf("\nProcesando...");
+        #ifdef _WIN32
+            Sleep(500);
+        #else
+            usleep(500000);
+        #endif
+        printf("\rError al eliminar planeta.\n");
+        #ifdef _WIN32
+            Sleep(800);
+        #else
+            usleep(800000);
+        #endif
     }
 }
 
@@ -414,19 +744,44 @@ void listar_planetas(sqlite3* db) {
     const char *sql = "SELECT nombre, radio_km, velocidad_orbital, distancia_sol, "
                      "color1, color2, color3, num_lunas FROM planetas;";
     
+    #ifdef _WIN32
+        system("cls");
+    #else
+        system("clear");
+    #endif
+    printf("Cargando lista de planetas...");
+    #ifdef _WIN32
+        Sleep(400);
+    #else
+        usleep(400000);
+    #endif
+    printf("\r");
+    printf("\n====================================\n");
+    printf("        LISTA DE PLANETAS\n");
+    printf("====================================\n");
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-        printf("\n--- LISTA DE PLANETAS ---\n");
+        int hay_planetas = 0;
         while (sqlite3_step(stmt) == SQLITE_ROW) {
+            hay_planetas = 1;
+            printf("------------------------------------\n");
             printf("Nombre: %s\n", sqlite3_column_text(stmt, 0));
-            printf("  Radio: %.1f km\n", sqlite3_column_double(stmt, 1));
-            printf("  Velocidad orbital: %.2f km/s\n", sqlite3_column_double(stmt, 2));
-            printf("  Distancia al Sol: %.1f Mkm\n", sqlite3_column_double(stmt, 3));
-            printf("  Colores: %s, %s, %s\n", 
+            printf("Radio: %.1f km\n", sqlite3_column_double(stmt, 1));
+            printf("Velocidad orbital: %.2f km/s\n", sqlite3_column_double(stmt, 2));
+            printf("Distancia al Sol: %.1f Mkm\n", sqlite3_column_double(stmt, 3));
+            printf("Colores: %s, %s, %s\n", 
                   sqlite3_column_text(stmt, 4), 
                   sqlite3_column_text(stmt, 5), 
                   sqlite3_column_text(stmt, 6));
-            printf("  Lunas: %d\n\n", sqlite3_column_int(stmt, 7));
+            printf("Lunas: %d\n", sqlite3_column_int(stmt, 7));
+        }
+        if (!hay_planetas) {
+            printf("No hay planetas registrados.\n");
         }
         sqlite3_finalize(stmt);
     }
+    printf("====================================\n");
+    printf("\n");
+    printf("Presione ENTER para continuar...");
+    getchar();
 }
+
