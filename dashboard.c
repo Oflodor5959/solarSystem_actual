@@ -1,8 +1,16 @@
+
+#include <raylib.h>
 #include "dashboard.h"
 #include "planetas.h"
 #include "simulador.h"
 #include <stdio.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOGDI
+#define NOMINMAX
+#define NOUSER
 #include <windows.h>
+#endif
 
 void show_dashboard(sqlite3* db) {
     int opcion;

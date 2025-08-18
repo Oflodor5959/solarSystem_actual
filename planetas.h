@@ -9,9 +9,16 @@
 #define PLANETAS_H
 
 #include <sqlite3.h>
+#include <raylib.h>
 
 #define MAX_COLORES 3
 #define MAX_LUNAS 8
+
+typedef struct {
+    Vector3 secundarias[124];
+    Vector3 terciarias[32];
+} ManchasPlaneta;
+
 typedef struct {
     char nombre[32];
     float radio_km;
