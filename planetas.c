@@ -489,12 +489,9 @@ void eliminar_planeta(sqlite3* db) {
     printf("   ELIMINAR PLANETA\n");
     printf("====================================\n");
     
-    
-
     sqlite3_stmt *stmt;
     const char *sql = "SELECT nombre FROM planetas;";
-    
-                        
+                     
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
         printf("Planetas disponibles:\n");
         
@@ -616,4 +613,9 @@ void listar_planetas(sqlite3* db) {
     printf("Presione ENTER para continuar...");
     getchar();
 }
+
+// Compile with:
+// gcc main.c dashboard.c planetas.c simulador.c source.c initialialization.c -o solar.exe -lsqlite3 -lraylib -lopengl32 -lgdi32 -lwinmm
+// Run with:
+// solar.exe
 
