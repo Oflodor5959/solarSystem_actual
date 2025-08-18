@@ -5,8 +5,8 @@
 // Descripción: [CRUD simulador de sistemas solares]
 // simulador.c
 
-#include <raylib.h>
 #include "simulador.h"
+#include <raylib.h>
 #include <sqlite3.h>
 #include <stdio.h>
 #include <string.h>
@@ -274,9 +274,9 @@ void iniciar_simulacion(sqlite3* db) {
         
         BeginMode3D(camera);
         
-        DrawSphere((Vector3){0, 0, 0}, 16.0f, YELLOW);
+        DrawSphere((Vector3){0, 0, 0}, 40.0f, YELLOW);
         Color brillo = (Color){255, 255, 100, 65};
-        DrawSphereEx((Vector3){0, 0, 0}, 19.0f, 32, 32, brillo);
+        DrawSphereEx((Vector3){0, 0, 0}, 44.0f, 32, 32, brillo);
         
         for (int i = 0; i < n; i++) {
             float ang = tiempo * planetas[i].velocidad_orbital * 0.01f;
@@ -361,6 +361,6 @@ void iniciar_simulacion(sqlite3* db) {
 }
 
 // Compile with:
-// gcc main.c dashboard.c planetas.c simulador.c source.c initialialization.c -o solar.exe -lsqlite3 -lraylib -lopengl32 -lgdi32 -lwinmm
+// gcc main.c dashboard.c planetas.c simulador.c source.c -o solar.exe -lsqlite3 -lraylib -lopengl32 -lgdi32 -lwinmm
 // Run with:
 // solar.exe

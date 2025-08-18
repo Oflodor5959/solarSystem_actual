@@ -21,7 +21,6 @@
 #include <windows.h>
 #endif
 
-#define DISTANCIA_MAX 6000.0f
 #define INPUT_BUFFER_SIZE 64
 #define SQL_BUFFER_SIZE 512
 

@@ -12,7 +12,7 @@ int procesar_input_float(const char* input, float* valor);
 int procesar_input_int(const char* input, int* valor);
 
 #define DISTANCIA_MIN 160.0f
-#define DISTANCIA_MAX 6000.0f
+#define DISTANCIA_MAX 7000.0f
 #define INPUT_BUFFER_SIZE 64
 #define SQL_BUFFER_SIZE 512
 

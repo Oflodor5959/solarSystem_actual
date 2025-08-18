@@ -26,7 +26,7 @@
 // DISTANCIA_MIN representa la distancia mínima permitida entre un planeta y el Sol en millones de km.
 // El valor 160.0f fue elegido para evitar solapamientos y asegurar una separación adecuada en el simulador.
 #define DISTANCIA_MIN 160.0f
-#define DISTANCIA_MAX 6000.0f
+#define DISTANCIA_MAX 7000.0f
 #define INPUT_BUFFER_SIZE 64
 #define SQL_BUFFER_SIZE 512
 
@@ -143,7 +143,7 @@ void agregar_planeta(sqlite3* db) {
     strcpy(p.nombre, input);
 
     do {
-        obtener_input("Radio (km) (2000 - 150000, o [SALIR] para cancelar): ", input, sizeof(input));
+        obtener_input("Radio (km) (2000 - 15000, o [SALIR] para cancelar): ", input, sizeof(input));
         if (strcmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             Sleep(800);
@@ -168,10 +168,10 @@ void agregar_planeta(sqlite3* db) {
             printf("Operacion cancelada.\n");
             return;
         }
-        if (p.radio_km < 2000.0f || p.radio_km > 150000.0f) {
+        if (p.radio_km < 2000.0f || p.radio_km > 15000.0f) {
             printf("Radio fuera de rango realista. Intente nuevamente.\n");
         }
-    } while (p.radio_km < 2000.0f || p.radio_km > 150000.0f);
+    } while (p.radio_km < 2000.0f || p.radio_km > 15000.0f);
 
     do {    //velocidad orbital
         obtener_input("Velocidad orbital (km/s) (o [SALIR] para cancelar): ", input, sizeof(input));
