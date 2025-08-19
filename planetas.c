@@ -70,7 +70,7 @@ int obtener_input(const char* prompt, char* buffer, size_t size) {
 }
 
 int procesar_input_float(const char* input, float* valor) {
-    if (strcmp(input, "SALIR") == 0) return 0;
+    if (stricmp(input, "SALIR") == 0) return 0;
     if (sscanf(input, "%f", valor) != 1) {
         printf("Entrada invalida.\n");
         return -1;
@@ -79,7 +79,7 @@ int procesar_input_float(const char* input, float* valor) {
 }
 
 int procesar_input_int(const char* input, int* valor) {
-    if (strcmp(input, "SALIR") == 0) return 0;
+    if (stricmp(input, "SALIR") == 0) return 0;
     if (sscanf(input, "%d", valor) != 1) {
         printf("Entrada invalida.\n");
         return -1;
@@ -94,15 +94,18 @@ int procesar_input_int(const char* input, int* valor) {
 void agregar_planeta(sqlite3* db) {
     Planeta p;
     char input[INPUT_BUFFER_SIZE];
-    
-    system("cls"); system("clear");
+    #ifdef _WIN32
+    system("cls");
+    #else
+    system("clear");
+    #endif
     printf("Cargando formulario de nuevo planeta...");
     #ifdef _WIN32
-        Sleep(400);
+        Sleep(400); system("cls");
     #else
-        usleep(400000);
+        usleep(400000); system("clear");
     #endif
-    system("cls"); system("clear");
+    
     printf("\r");
     printf("\n====================================\n");
     printf("   AGREGAR NUEVO PLANETA\n");
@@ -115,7 +118,7 @@ void agregar_planeta(sqlite3* db) {
             return;
         }
         input[strcspn(input, "\n")] = 0;
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             return;
         }
@@ -144,7 +147,7 @@ void agregar_planeta(sqlite3* db) {
 
     do {
         obtener_input("Radio (km) (2000 - 15000, o [SALIR] para cancelar): ", input, sizeof(input));
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             Sleep(800);
             return;
@@ -175,7 +178,7 @@ void agregar_planeta(sqlite3* db) {
 
     do {    //velocidad orbital
         obtener_input("Velocidad orbital (km/s) (o [SALIR] para cancelar): ", input, sizeof(input));
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             Sleep(800);
             return;
@@ -208,7 +211,7 @@ void agregar_planeta(sqlite3* db) {
         printf("Distancia al Sol (millones km, %.1f - %.1f, o [SALIR] para cancelar): ", distancia_minima, DISTANCIA_MAX);      
         obtener_input("", input, sizeof(input));
         
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             Sleep(800);
             return;
@@ -245,7 +248,7 @@ void agregar_planeta(sqlite3* db) {
     do {
         printf("Ingrese el color %s (o [SALIR] para cancelar): ", nombres_colores[i]);
         obtener_input("", input, sizeof(input));
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             return;
         }
@@ -261,7 +264,7 @@ void agregar_planeta(sqlite3* db) {
     do {
         printf("Numero de lunas (0-%d, o [SALIR] para cancelar): ", MAX_LUNAS);
         obtener_input("", input, sizeof(input));
-        if (strcmp(input, "SALIR") == 0) {
+        if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             return;
         }
@@ -339,15 +342,26 @@ void editar_planeta(sqlite3* db) {
     system("clear"); system("cls");
     printf("Cargando formulario de edicion...");
     #ifdef _WIN32
-        Sleep(600);
+        Sleep(600); system("cls");
     #else
-        usleep(600000);
+        usleep(600000); system("clear");
     #endif
-    system("clear"); system("cls");
+     
     printf("\r");
     printf("\n====================================\n");
     printf("   EDITAR PLANETA\n");
     printf("====================================\n");
+    // Mostrar lista de planetas disponibles
+    sqlite3_stmt *stmt_list;
+    const char *sql_list = "SELECT nombre FROM planetas;";
+    if (sqlite3_prepare_v2(db, sql_list, -1, &stmt_list, NULL) == SQLITE_OK) {
+        printf("Planetas disponibles:\n");
+        while (sqlite3_step(stmt_list) == SQLITE_ROW) {
+            printf(" - %s\n", sqlite3_column_text(stmt_list, 0));
+        }
+        sqlite3_finalize(stmt_list);
+    }
+    printf("\n");
     printf("Presione 'Enter' para continuar...");
     int c;
     while ((c = getchar()) != '\n' && c != EOF)// Limpia el buffer de entrada
@@ -357,7 +371,7 @@ void editar_planeta(sqlite3* db) {
         printf("\r%*s\r", 40, "");
     do {
         obtener_input("Nombre del planeta a editar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));
-        if (strcmp(nombre, "SALIR") == 0) {
+        if (stricmp(nombre, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             return;
         }
@@ -479,11 +493,11 @@ void eliminar_planeta(sqlite3* db) {
     #endif
     printf("Cargando formulario de eliminacion...");
     #ifdef _WIN32
-        Sleep(600);
+        Sleep(600); system("cls");
     #else
-        usleep(600000);
+        usleep(600000); system("clear");
     #endif
-    system("cls"); system("clear");
+     
     printf("\r");
     printf("\n====================================\n");
     printf("   ELIMINAR PLANETA\n");
@@ -510,7 +524,7 @@ void eliminar_planeta(sqlite3* db) {
     int existe = 0;
     do {
         obtener_input("Nombre del planeta a eliminar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));
-        if (strcmp(nombre, "SALIR") == 0) {
+        if (stricmp(nombre, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             return;
         }
@@ -580,9 +594,9 @@ void listar_planetas(sqlite3* db) {
     #endif
     printf("Cargando lista de planetas...");
     #ifdef _WIN32
-        Sleep(400);
+        Sleep(400); system("cls");
     #else
-        usleep(400000);
+        usleep(400000); system("clear");
     #endif
     printf("\r");
     printf("\n====================================\n");

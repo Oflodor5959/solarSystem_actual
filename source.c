@@ -57,15 +57,18 @@ int validar_orbita(sqlite3* db, const Planeta* p, const char* excluir_nombre) {
 }
 
 void mostrar_menu_edicion(const Planeta* p) {
-
-    system("cls"); system("clear"); 
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
     printf("Cargando menu de edicion...");
 #ifdef _WIN32
-    Sleep(600);
+    Sleep(600); system("cls");
 #else
-    usleep(600000);
+    usleep(600000); system("clear");
 #endif
-    system("cls"); system("clear");
+     
     printf("\r");
     printf("\n====================================\n");
     printf("   MENU EDICION DE PLANETA\n");
@@ -114,8 +117,8 @@ void editar_campo(Planeta* p, int opcion) {
             break;
             
         case 4:
-    obtener_input("Nuevo color principal (o SALIR para cancelar): ", input, sizeof(input));
-    if (strcmp(input, "SALIR") == 0) {
+    obtener_input("Nuevo color principal (o [SALIR] para cancelar): ", input, sizeof(input));
+    if (stricmp(input, "SALIR") == 0) {
         printf("Operacion cancelada.\n");
         break;
     }
@@ -127,8 +130,8 @@ void editar_campo(Planeta* p, int opcion) {
     break;
 
 case 5:
-    obtener_input("Nuevo color secundario (o SALIR para cancelar): ", input, sizeof(input));
-    if (strcmp(input, "SALIR") == 0) {
+    obtener_input("Nuevo color secundario (o [SALIR] para cancelar): ", input, sizeof(input));
+    if (stricmp(input, "SALIR") == 0) {
         printf("Operacion cancelada.\n");
         break;
     }
@@ -140,8 +143,8 @@ case 5:
     break;
 
 case 6:
-    obtener_input("Nuevo color terciario (o SALIR para cancelar): ", input, sizeof(input));
-    if (strcmp(input, "SALIR") == 0) {
+    obtener_input("Nuevo color terciario (o [SALIR] para cancelar): ", input, sizeof(input));
+    if (stricmp(input, "SALIR") == 0) {
         printf("Operacion cancelada.\n");
         break;
     }
@@ -153,7 +156,7 @@ case 6:
 case 7:
          do {
             obtener_input("Nuevo numero de lunas (0-8, o [SALIR] para cancelar): ", input, sizeof(input));
-                if (strcmp(input, "SALIR") == 0) {
+                if (stricmp(input, "SALIR") == 0) {
                 printf("Operacion cancelada.\n");
                 break;
             }

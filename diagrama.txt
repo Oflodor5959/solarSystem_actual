@@ -1,0 +1,38 @@
+DIGRAMA DE FLUJO DEL PROYECTO
+
++-------------------+
+|      INICIO       |
++-------------------+
+         |
+         v
++-------------------+
+| Abrir BD SQLite   |
++-------------------+
+         |
+         v
++-----------------------------------+
+| Crear tabla planetas si no existe |
++-----------------------------------+
+         |
+         v
++-------------------+
+|   Menú principal  |
++-------------------+
+         |
+         v
++-------------------+
+| Selección opción  |
++-------------------+
+         |
+         v
++-------------------+-------------------+-------------------+-------------------+-------------------+-------------------+
+|  Agregar planeta  |  Editar planeta   |  Eliminar planeta |  Listar planetas  |  Simular sistema  |      Salir        |
++-------------------+-------------------+-------------------+-------------------+-------------------+-------------------+
+         |                   |                   |                   |                   |                   |
+         v                   v                   v                   v                   v                   v
+-Solicitar datos     -Mostrar lista         -Mostrar lista        -Mostrar todos    -Iniciar simulación  -Cerrar BD
+-Validar datos       -Solicitar nombre      -Solicitar nombre     -planetas         -gráfica Raylib      -FIN
+-Insertar en BD      -Validar existencia    -Validar existencia   -Volver al menú   -Volver al menú
+-Volver al menú      -Editar campo          -Eliminar de BD
+                     -Validar y actualizar  -Volver al menú
+                     -Volver al menú

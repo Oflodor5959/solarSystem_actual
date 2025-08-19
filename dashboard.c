@@ -16,7 +16,11 @@ void show_dashboard(sqlite3* db) {
     int opcion;
 char input[16];
 do {
-    system("cls");
+    #ifdef _WIN32
+    system("cls"); Sleep(400);
+    #else
+    system("clear"); usleep(400000);
+    #endif
     printf("====================================\n");
     printf("      PANEL SISTEMA SOLAR\n");
     printf("====================================\n");
@@ -42,24 +46,39 @@ do {
 
     if (!es_numero || sscanf(input, "%d", &opcion) != 1) {
         printf("\nOpcion invalida. Debe ingresar solo numeros.\n");
+        #ifdef _WIN32
         Sleep(1000);
+        #else
+        usleep(1000000);
+        #endif
         continue;
     }
 
     if (opcion == 0) {
         printf("\nSaliendo...\n");
-        Sleep(800);
-        system("cls");
+        #ifdef _WIN32
+        Sleep(800); system("cls");
+        #else
+        usleep(800000); system("clear");
+        #endif
         break;
     }
     if (opcion < 0 || opcion > 5) {
         printf("\nOpcion invalida. Debe ingresar un numero entre 0 y 5.\n");
+        #ifdef _WIN32
         Sleep(3000);
+        #else
+        usleep(3000000);
+        #endif
         continue;
     }
 
     printf("\nCargando...\n");
+    #ifdef _WIN32
     Sleep(500);
+    #else
+    usleep(500000);
+    #endif
 
     switch(opcion) {
         case 1: agregar_planeta(db); break;

@@ -35,16 +35,16 @@ int solo_letras(const char* s) {
 }
 
 Color nombre_a_color(const char *nombre) {
-    if (strcmp(nombre, "RED") == 0) return RED;
-    if (strcmp(nombre, "BLUE") == 0) return BLUE;
-    if (strcmp(nombre, "GREEN") == 0) return GREEN;
-    if (strcmp(nombre, "YELLOW") == 0) return YELLOW;
-    if (strcmp(nombre, "ORANGE") == 0) return ORANGE;
-    if (strcmp(nombre, "PURPLE") == 0) return PURPLE;
-    if (strcmp(nombre, "BROWN") == 0) return BROWN;
-    if (strcmp(nombre, "GRAY") == 0) return GRAY;
-    if (strcmp(nombre, "WHITE") == 0) return WHITE;
-    if (strcmp(nombre, "BLACK") == 0) return BLACK;
+    if (stricmp(nombre, "RED") == 0) return RED;
+    if (stricmp(nombre, "BLUE") == 0) return BLUE;
+    if (stricmp(nombre, "GREEN") == 0) return GREEN;
+    if (stricmp(nombre, "YELLOW") == 0) return YELLOW;
+    if (stricmp(nombre, "ORANGE") == 0) return ORANGE;
+    if (stricmp(nombre, "PURPLE") == 0) return PURPLE;
+    if (stricmp(nombre, "BROWN") == 0) return BROWN;
+    if (stricmp(nombre, "GRAY") == 0) return GRAY;
+    if (stricmp(nombre, "WHITE") == 0) return WHITE;
+    if (stricmp(nombre, "BLACK") == 0) return BLACK;
     return RAYWHITE;
 }
 
@@ -74,7 +74,7 @@ int es_color_valido(const char* color) {
                             "PURPLE", "BROWN", "GRAY", "WHITE", "BLACK"};
     int n = 10;
     for (int i = 0; i < n; i++) {
-        if (strcmp(color, colores[i]) == 0) return 1;
+        if (stricmp(color, colores[i]) == 0) return 1;
     }
     return 0;
 }
@@ -260,7 +260,7 @@ void iniciar_simulacion(sqlite3* db) {
         ClearBackground((Color){10, 10, 30, 255});
         
         if (pausado) {
-            DrawText("Simulacion pausada (SPACE para continuar)", 10, 90, 20, RED);
+            DrawText("Simulacion pausada (SPACE para continuar)", 725, 700, 24, RED);
         }
         
         for (int s = 0; s < NUM_ESTRELLAS; s++) {
@@ -348,10 +348,12 @@ void iniciar_simulacion(sqlite3* db) {
                    panel_x + 10, panel_y + 90, 18, RAYWHITE);
         }
         
-        DrawText("Controles: Space-bar para pausar, Mouse para rotar, rueda para zoom", 10, 10, 20, RAYWHITE);
+        DrawText("Controles: Mouse para rotar, rueda para zoom", 10, 10, 20, RAYWHITE);
         DrawText("Presione O para mostrar/ocultar orbitas", 10, 30, 20, RAYWHITE);
-        DrawText("Presione Q para salir de la simulacion", 10, 50, 20, RAYWHITE);
-        
+        DrawText("Presione Space-bar para pausar la simulacion", 10, 50, 20, RAYWHITE);
+        DrawText("Haga click izquierdo sobre un planeta para visualizar", 10, 70, 20, RAYWHITE);
+        DrawText("Presione Q para salir de la simulacion", 10, 90, 20, RED);
+
         EndDrawing();
     }
     
