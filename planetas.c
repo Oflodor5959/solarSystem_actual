@@ -24,8 +24,8 @@
 
 // Constants
 // DISTANCIA_MIN representa la distancia mínima permitida entre un planeta y el Sol en millones de km.
-// El valor 160.0f fue elegido para evitar solapamientos y asegurar una separación adecuada en el simulador.
-#define DISTANCIA_MIN 160.0f
+// El valor 400.0f fue elegido para evitar solapamientos y asegurar una separación adecuada en el simulador.
+#define DISTANCIA_MIN 800.0f
 #define DISTANCIA_MAX 7000.0f
 #define INPUT_BUFFER_SIZE 64
 #define SQL_BUFFER_SIZE 512
@@ -177,7 +177,7 @@ void agregar_planeta(sqlite3* db) {
     } while (p.radio_km < 2000.0f || p.radio_km > 15000.0f);
 
     do {    //velocidad orbital
-        obtener_input("Velocidad orbital (km/s) (o [SALIR] para cancelar): ", input, sizeof(input));
+        obtener_input("Velocidad orbital (5 - 50 km/s) (o [SALIR] para cancelar): ", input, sizeof(input));
         if (stricmp(input, "SALIR") == 0) {
             printf("Operacion cancelada.\n");
             Sleep(800);
@@ -201,6 +201,10 @@ void agregar_planeta(sqlite3* db) {
         if (procesar_input_float(input, &p.velocidad_orbital) <= 0) {
             printf("Operacion cancelada.\n");
             return;
+        }
+        if (p.velocidad_orbital < 5.0f || p.velocidad_orbital > 50.0f) {
+            printf("Velocidad orbital fuera de rango realista (5-50 km/s). Intente nuevamente.\n");
+            continue;
         }
         break;
     } while (1);
@@ -362,13 +366,7 @@ void editar_planeta(sqlite3* db) {
         sqlite3_finalize(stmt_list);
     }
     printf("\n");
-    printf("Presione 'Enter' para continuar...");
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)// Limpia el buffer de entrada
-    ; 
-        // Borra la línea del mensaje en la terminal
-        printf("\033[F");
-        printf("\r%*s\r", 40, "");
+           
     do {
         obtener_input("Nombre del planeta a editar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));
         if (stricmp(nombre, "SALIR") == 0) {
@@ -513,14 +511,10 @@ void eliminar_planeta(sqlite3* db) {
             printf(" - %s\n", sqlite3_column_text(stmt, 0));
         }
         sqlite3_finalize(stmt); 
-    }  printf("presione ENTER para seleccionar un planeta");
+    }  
 
     char nombre[32];
-    int c;
-    while ((c = getchar()) != '\n' && c != EOF)
-    ; 
-    printf("\033[F");
-    printf("\r%*s\r", 44, "");
+    
     int existe = 0;
     do {
         obtener_input("Nombre del planeta a eliminar (o [SALIR] para cancelar): ", nombre, sizeof(nombre));

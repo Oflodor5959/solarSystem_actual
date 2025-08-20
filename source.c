@@ -96,8 +96,31 @@ void editar_campo(Planeta* p, int opcion) {
             break;
             
         case 2:
-            obtener_input("Nueva velocidad orbital (km/s, o SALIR para cancelar): ", input, sizeof(input));
-            if (procesar_input_float(input, &p->velocidad_orbital) <= 0) break;
+            do {
+                obtener_input("Nueva velocidad orbital (5 - 50 km/s, o SALIR para cancelar): ", input, sizeof(input));
+                if (stricmp(input, "SALIR") == 0) break;
+                if (strlen(input) == 0) {
+                    printf("El campo no puede estar vacio. Intente nuevamente.\n");
+                    continue;
+                }
+                int es_numero = 1;
+                for (int i = 0; input[i] != '\0'; i++) {
+                    if ((input[i] < '0' || input[i] > '9') && input[i] != '.') {
+                        es_numero = 0;
+                        break;
+                    }
+                }
+                if (!es_numero) {
+                    printf("Solo se permiten numeros o la palabra SALIR. Intente nuevamente.\n");
+                    continue;
+                }
+                if (procesar_input_float(input, &p->velocidad_orbital) <= 0) break;
+                if (p->velocidad_orbital < 5.0f || p->velocidad_orbital > 50.0f) {
+                    printf("Velocidad orbital fuera de rango realista (5-50 km/s). Intente nuevamente.\n");
+                    continue;
+                }
+                break;
+            } while (1);
             break;
             
         case 3:
